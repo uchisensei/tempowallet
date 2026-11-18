@@ -10,5 +10,5 @@
 //  policies (vedi README.md), NON dalla segretezza della chiave.
 // ============================================================
 
-window.SUPABASE_URL = '';           // es. 'https://abcdexyz.supabase.co'
-window.SUPABASE_ANON_KEY = '';      // chiave anon pubblica (eyJ...)
+window.SUPABASE_URL = 'https://cozbuowixphrjhlizrlx.supabase.co';           // es. 'https://abcdexyz.supabase.co'
+window.SUPABASE_ANON_KEY = 'sb_publishable_gpcuQ5XzkSWLAsYDIzIryQ_FYoZ_7td';      // chiave anon pubblica (eyJ...)
