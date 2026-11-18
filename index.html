@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" id="meta-theme" content="#FFD60A">
+<title>TempoWallet — Taglia il superfluo, guadagna tempo</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TempoWallet">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+  :root{
+    --bg:#0D0D0D;
+    --bg-2:#161616;
+    --card:#1C1C1C;
+    --ink:#FFFFFF;
+    --muted:#8A8A8A;
+    --line:#2E2E2E;
+    --primary:#FFD60A;
+    --primary-d:#E6B800;
+    --primary-soft:rgba(255,214,10,0.14);
+    --gold:#FFD60A;
+    --gold-soft:rgba(255,214,10,0.16);
+    --cut:#FFD60A;
+    --cut-soft:rgba(255,214,10,0.16);
+    --auto:#C99700;
+    --auto-soft:rgba(201,151,0,0.20);
+    --do:#FFE94D;
+    --do-soft:rgba(255,233,77,0.14);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.5);
+    --shadow-lg:0 4px 24px rgba(0,0,0,.6);
+    --radius:18px;
+    --radius-sm:12px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:linear-gradient(180deg,#000000 0%,#0D0D0D 40%);
+    color:var(--ink);
+    font-size:16px;line-height:1.5;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* Phone container — centered on desktop, full width on mobile */
+  .phone{
+    max-width:480px;margin:0 auto;min-height:100vh;
+    background:var(--bg);
+    position:relative;
+    box-shadow:0 0 60px rgba(255,214,10,.05);border-left:1px solid #232323;border-right:1px solid #232323;
+    display:flex;flex-direction:column;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  /* Header */
+  header.appbar{
+    position:sticky;top:0;z-index:30;
+    background:rgba(13,13,13,.92);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+    padding:14px 18px 12px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .brand{display:flex;align-items:center;gap:9px}
+  .brand .logo{
+    width:30px;height:30px;border-radius:9px;
+    background:radial-gradient(circle at 30% 30%,#FFE94D,#E6B800 70%);
+    display:grid;place-items:center;color:#0D0D0D;font-weight:800;font-size:15px;
+    box-shadow:0 2px 8px rgba(255,214,10,.35);
+  }
+  .brand h1{margin:0;font-size:17px;font-weight:800;letter-spacing:-.3px}
+  .brand small{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:-2px}
+  .head-actions{display:flex;align-items:center;gap:6px}
+  .icon-btn{
+    width:40px;height:40px;border-radius:12px;border:none;background:transparent;
+    color:var(--ink);display:grid;place-items:center;cursor:pointer;position:relative;
+  }
+  .icon-btn:hover{background:rgba(255,255,255,.06)}
+  .icon-btn svg{width:21px;height:21px}
+  .badge{
+    position:absolute;top:6px;right:6px;min-width:17px;height:17px;
+    background:var(--cut);color:#0D0D0D;font-size:10px;font-weight:700;
+    border-radius:9px;display:grid;place-items:center;padding:0 4px;
+    border:2px solid var(--bg);
+  }
+  /* Main scroll area */
+  main{flex:1;overflow-y:auto;padding:18px 16px 24px}
+  .screen{display:none;animation:fade .25s ease}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* Bottom nav */
+  nav.tabbar{
+    position:sticky;bottom:0;z-index:30;
+    background:rgba(20,20,20,.94);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+    display:grid;grid-template-columns:repeat(4,1fr);
+    padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+  }
+  .tab{
+    border:none;background:transparent;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    color:var(--muted);font-size:11px;font-weight:600;padding:6px 4px;border-radius:10px;
+  }
+  .tab svg{width:22px;height:22px}
+  .tab.active{color:var(--primary)}
+  .tab.active svg{transform:translateY(-1px)}
+  .tab:active{background:rgba(255,255,255,.04)}
+
+  /* Cards & layout */
+  .card{
+    background:var(--card);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:16px;margin-bottom:14px;
+    border:1px solid rgba(255,255,255,.06);
+  }
+  .card.flush{padding:0;overflow:hidden}
+  .eyebrow{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:0 0 6px}
+  h2.screen-title{font-size:22px;font-weight:800;letter-spacing:-.5px;margin:2px 0 16px}
+  .section-h{font-size:15px;font-weight:700;margin:18px 2px 10px;display:flex;align-items:center;justify-content:space-between}
+  .section-h .link{font-size:12px;color:var(--primary);font-weight:600;cursor:pointer;background:none;border:none;padding:0}
+
+  /* Hero balance card */
+  .hero{
+    background:linear-gradient(150deg,#FFE94D 0%,#E6B800 100%);
+    color:#0D0D0D;border-radius:22px;padding:22px 20px;position:relative;overflow:hidden;
+    box-shadow:0 10px 30px rgba(255,214,10,.25);margin-bottom:16px;
+  }
+  .hero::after{
+    content:"";position:absolute;right:-40px;top:-40px;width:180px;height:180px;
+    background:radial-gradient(circle,rgba(255,255,255,.30),transparent 65%);
+  }
+  .hero .eyebrow{color:rgba(13,13,13,.65)}
+  .hero .big{
+    font-size:38px;font-weight:800;letter-spacing:-1px;margin:2px 0 0;line-height:1.05;
+  }
+  .hero .big .unit{font-size:20px;font-weight:700;opacity:.85;margin-left:3px}
+  .hero .euro{
+    display:inline-flex;align-items:center;gap:8px;margin-top:12px;
+    background:#0D0D0D;color:#FFD60A;padding:7px 12px;border-radius:10px;
+    font-size:14px;font-weight:700;
+  }
+  .hero .euro svg{width:16px;height:16px;opacity:.9}
+  .goal-row{margin-top:18px;position:relative;z-index:1}
+  .goal-label{display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:rgba(13,13,13,.7);margin-bottom:6px}
+  .goal-bar{height:8px;background:rgba(13,13,13,.18);border-radius:6px;overflow:hidden}
+  .goal-bar > span{display:block;height:100%;background:linear-gradient(90deg,#0D0D0D,#333333);border-radius:6px;transition:width .6s ease}
+
+  /* Stat triplet */
+  .stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+  .stat{
+    background:var(--card);border-radius:14px;padding:12px 8px;text-align:center;
+    box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.06);
+  }
+  .stat .v{font-size:15px;font-weight:800;letter-spacing:-.3px}
+  .stat .l{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+
+  /* Bar chart */
+  .chart{display:flex;align-items:flex-end;gap:8px;height:120px;padding:8px 4px 0;margin-top:6px}
+  .chart .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+  .chart .bar{
+    width:100%;max-width:30px;background:linear-gradient(180deg,#FFE94D,#E6B800);
+    border-radius:7px 7px 3px 3px;min-height:3px;transition:height .5s ease;position:relative;
+  }
+  .chart .bar.today{background:linear-gradient(180deg,#FFFFFF,#FFD60A)}
+  .chart .bar-label{font-size:10px;color:var(--muted);font-weight:600}
+
+  /* Activity feed */
+  .feed-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .feed-item:last-child{border-bottom:none}
+  .feed-ico{
+    width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex-shrink:0;
+    font-size:18px;
+  }
+  .feed-ico.cut{background:var(--cut-soft);color:var(--cut)}
+  .feed-ico.auto{background:var(--auto-soft);color:var(--auto)}
+  .feed-ico.do{background:var(--do-soft);color:var(--do)}
+  .feed-body{flex:1;min-width:0}
+  .feed-body .t{font-size:14px;font-weight:600;line-height:1.3}
+  .feed-body .s{font-size:12px;color:var(--muted);margin-top:1px}
+  .feed-amt{font-size:14px;font-weight:800;color:var(--primary);white-space:nowrap}
+  .feed-amt.minus{color:#FFFFFF}
+
+  /* Decision chips / buttons */
+  .decide{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+  .chip{
+    border:1.5px solid var(--line);background:var(--card);border-radius:13px;
+    padding:11px 6px;cursor:pointer;text-align:center;transition:all .15s;
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+  }
+  .chip svg{width:20px;height:20px}
+  .chip .ttl{font-size:12px;font-weight:700}
+  .chip .sub{font-size:10px;color:var(--muted);font-weight:500}
+  .chip.sel-cut{border-color:var(--cut);background:var(--cut);color:#0D0D0D}
+  .chip.sel-auto{border-color:var(--auto);background:var(--auto);color:#0D0D0D}
+  .chip.sel-do{border-color:var(--do);background:var(--do);color:#0D0D0D}
+
+  /* Form fields */
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px}
+  .field input,.field select,.field textarea{
+    width:100%;border:1.5px solid var(--line);border-radius:11px;
+    padding:11px 12px;font-size:15px;font-family:inherit;background:var(--card);color:var(--ink);
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--primary)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  /* Primary button */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--primary);color:#0D0D0D;border:none;border-radius:13px;
+    padding:13px 18px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+    width:100%;transition:transform .1s;
+  }
+  .btn:active{transform:scale(.98)}
+  .btn.ghost{background:var(--card);color:var(--ink);border:1.5px solid var(--line)}
+  .btn.gold{background:linear-gradient(135deg,#FFE94D,#E6B800)}
+  .btn.small{padding:8px 12px;font-size:13px;width:auto;border-radius:10px}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+
+  /* Activity cards (audit list) */
+  .act{
+    background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px;
+    border:1px solid var(--line);box-shadow:var(--shadow);
+  }
+  .act-top{display:flex;justify-content:space-between;gap:10px}
+  .act-name{font-size:15px;font-weight:700;line-height:1.3}
+  .act-meta{font-size:12px;color:var(--muted);margin-top:3px}
+  .tag{
+    display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;
+    padding:3px 8px;border-radius:7px;text-transform:uppercase;letter-spacing:.4px;
+  }
+  .tag.cut{background:var(--cut-soft);color:var(--cut)}
+  .tag.auto{background:var(--auto-soft);color:var(--auto)}
+  .tag.do{background:var(--do-soft);color:var(--do)}
+  .act-foot{display:flex;align-items:center;justify-content:space-between;margin-top:11px;gap:8px;flex-wrap:wrap}
+  .act-save{font-size:12px;color:var(--muted)}
+  .act-save b{color:var(--primary);font-size:14px}
+  .act-actions{display:flex;gap:6px}
+  .act-shortcut{
+    margin-top:10px;padding:10px 11px;background:var(--primary-soft);border-radius:10px;
+    font-size:12px;color:var(--primary-d);display:flex;gap:8px;align-items:flex-start;
+  }
+  .act-shortcut svg{width:15px;height:15px;flex-shrink:0;margin-top:1px}
+
+  /* Coach */
+  .tip-card{
+    background:linear-gradient(135deg,rgba(255,214,10,.12),rgba(255,214,10,.03));border-radius:18px;padding:16px;
+    margin-bottom:14px;border:1px solid rgba(255,214,10,.25);
+  }
+  .tip-card .eyebrow{color:var(--gold)}
+  .tip-card h3{margin:0 0 6px;font-size:16px;font-weight:800}
+  .tip-card p{margin:0;font-size:14px;line-height:1.5;color:#D4D4D4}
+  .notif{
+    display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--line);
+  }
+  .notif:last-child{border-bottom:none}
+  .notif-ico{
+    width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;
+    background:var(--primary-soft);color:var(--primary);
+  }
+  .notif-ico svg{width:18px;height:18px}
+  .notif-ico.gold{background:var(--gold-soft);color:var(--gold)}
+  .notif-ico.cut{background:var(--cut-soft);color:var(--cut)}
+  .notif-body{flex:1;min-width:0}
+  .notif-time{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:2px}
+  .notif-title{font-size:14px;font-weight:700;line-height:1.3}
+  .notif-msg{font-size:13px;color:var(--ink);margin-top:2px;line-height:1.4}
+
+  /* Marketplace */
+  .wallet{
+    background:linear-gradient(135deg,#1C1C1C 0%,#0D0D0D 100%);color:#FFD60A;
+    border:1px solid rgba(255,214,10,.3);border-radius:18px;padding:18px 20px;margin-bottom:16px;position:relative;overflow:hidden;
+    box-shadow:0 8px 24px rgba(255,214,10,.12);
+  }
+  .wallet::after{content:"";position:absolute;right:-30px;bottom:-30px;width:140px;height:140px;background:radial-gradient(circle,rgba(255,214,10,.18),transparent 60%)}
+  .wallet .eyebrow{color:rgba(255,255,255,.6)}
+  .wallet .amt{font-size:34px;font-weight:800;letter-spacing:-1px;margin:2px 0 0}
+  .wallet .sub{font-size:12px;color:rgba(255,255,255,.7);margin-top:6px}
+  .rewards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .reward{
+    background:var(--card);border-radius:14px;padding:14px 12px;text-align:center;
+    border:1px solid var(--line);box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;gap:6px;
+  }
+  .reward .emoji{font-size:30px;line-height:1}
+  .reward .rname{font-size:13px;font-weight:700;line-height:1.2;min-height:32px;display:flex;align-items:center}
+  .reward .rprice{font-size:14px;font-weight:800;color:var(--gold);margin-top:2px}
+  .reward .rprice small{font-size:11px;color:var(--muted);font-weight:600}
+  .reward .btn.small{margin-top:6px;width:100%}
+  .reward .rpartner{font-size:10px;color:var(--muted);font-weight:600}
+
+  /* Empty state */
+  .empty{text-align:center;padding:30px 16px;color:var(--muted)}
+  .empty .ico{font-size:40px;margin-bottom:8px}
+  .empty p{margin:0;font-size:14px}
+
+  /* Notifications panel */
+  .panel{
+    position:fixed;top:0;left:50%;transform:translateX(-50%) translateY(-100%);
+    width:100%;max-width:480px;height:100vh;background:var(--bg);z-index:50;
+    transition:transform .3s ease;display:flex;flex-direction:column;
+    box-shadow:0 0 40px rgba(0,0,0,.6);
+  }
+  .panel.open{transform:translateX(-50%) translateY(0)}
+  .panel-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--card)}
+  .panel-head h3{margin:0;font-size:17px;font-weight:800}
+  .panel-body{flex:1;overflow-y:auto;padding:8px 18px 24px}
+
+  /* Modal */
+  .modal-bg{
+    position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:60;
+    display:none;align-items:flex-end;justify-content:center;
+  }
+  .modal-bg.open{display:flex}
+  .modal{
+    background:var(--card);width:100%;max-width:480px;border-radius:22px 22px 0 0;
+    padding:22px 20px calc(24px + env(safe-area-inset-bottom));max-height:90vh;overflow-y:auto;
+    animation:slideUp .3s ease;
+  }
+  @keyframes slideUp{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
+  .modal h3{margin:0 0 16px;font-size:20px;font-weight:800}
+  .modal .close-x{
+    float:right;width:34px;height:34px;border-radius:10px;border:none;background:var(--bg-2);
+    cursor:pointer;display:grid;place-items:center;color:var(--muted);
+  }
+
+  /* Onboarding overlay */
+  .onboard{
+    position:fixed;inset:0;background:linear-gradient(160deg,#1A1A1A 0%,#000000 100%);
+    z-index:80;color:#fff;display:flex;flex-direction:column;justify-content:center;
+    padding:32px 28px;max-width:480px;margin:0 auto;
+  }
+  .onboard.hidden{display:none}
+  .onboard .logo-big{
+    width:64px;height:64px;border-radius:18px;
+    background:radial-gradient(circle at 30% 30%,#FFE94D,#E6B800);
+    display:grid;place-items:center;font-size:30px;font-weight:800;color:#0D0D0D;
+    margin-bottom:22px;box-shadow:0 8px 30px rgba(255,214,10,.3);
+  }
+  .onboard h1{font-size:30px;font-weight:800;letter-spacing:-.8px;margin:0 0 10px;line-height:1.1}
+  .onboard .tagline{font-size:15px;color:rgba(255,255,255,.82);margin:0 0 28px;line-height:1.5}
+  .onboard .pill-row{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+  .onboard .pill{
+    background:rgba(255,214,10,.08);border-radius:14px;padding:13px 14px;
+    display:flex;gap:11px;align-items:center;font-size:14px;
+  }
+  .onboard .pill .e{font-size:22px}
+  .onboard .pill b{display:block;font-size:14px}
+  .onboard .pill span{font-size:12px;color:rgba(255,255,255,.7)}
+  .onboard .setup{background:rgba(255,214,10,.08);border-radius:14px;padding:16px;margin-bottom:18px}
+  .onboard .setup label{display:block;font-size:12px;color:rgba(255,255,255,.8);margin-bottom:6px;font-weight:600}
+  .onboard .setup input{
+    width:100%;border:none;border-radius:10px;padding:11px;font-size:16px;
+    background:#fff;color:#1A1A1A;font-family:inherit;
+  }
+  .onboard .btn{background:var(--primary);color:#0D0D0D}
+
+  /* Toast */
+  .toast{
+    position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#1C1C1C;color:#fff;border:1px solid rgba(255,214,10,.4);padding:12px 18px;border-radius:12px;
+    font-size:14px;font-weight:600;z-index:70;opacity:0;pointer-events:none;
+    transition:all .3s ease;max-width:90%;text-align:center;box-shadow:var(--shadow-lg);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.gold{background:var(--gold);color:#0D0D0D;border-color:transparent}
+  .toast.err{background:#3A1A1A;color:#FFB3B3;border-color:#A33B2E}
+
+  /* Responsive tweaks */
+  @media (min-width:520px){
+    .rewards{grid-template-columns:repeat(3,1fr)}
+  }
+  @media (max-width:360px){
+    .hero .big{font-size:32px}
+    .stats3{gap:6px}
+    .stat .v{font-size:13px}
+  }
+
+  /* ===== Theme toggle icons ===== */
+  #btn-theme .ico-sun{display:none}
+  #btn-theme .ico-moon{display:block}
+  html[data-theme="light"] #btn-theme .ico-sun{display:block}
+  html[data-theme="light"] #btn-theme .ico-moon{display:none}
+
+  /* ===== LIGHT THEME — yellow background, black text ===== */
+  html[data-theme="light"]{
+    --bg:#FFD60A;
+    --bg-2:#FFE94D;
+    --card:#FFFFFF;
+    --ink:#1A1A1A;
+    --muted:#6B5E00;
+    --line:#E6C800;
+    --primary:#1A1A1A;
+    --primary-d:#000000;
+    --primary-soft:rgba(26,26,26,0.07);
+    --gold:#1A1A1A;
+    --gold-soft:rgba(26,26,26,0.07);
+    --cut:#1A1A1A;
+    --cut-soft:rgba(26,26,26,0.08);
+    --auto:#6B5A00;
+    --auto-soft:rgba(107,90,0,0.14);
+    --do:#000000;
+    --do-soft:rgba(0,0,0,0.06);
+    --shadow:0 1px 2px rgba(0,0,0,.08),0 4px 14px rgba(0,0,0,.10);
+    --shadow-lg:0 4px 20px rgba(0,0,0,.16);
+  }
+  html[data-theme="light"] body{background:linear-gradient(180deg,#FFE94D 0%,#FFD60A 40%)}
+  html[data-theme="light"] .phone{
+    box-shadow:0 0 60px rgba(0,0,0,.10);
+    border-left:1px solid #E6C800;border-right:1px solid #E6C800;
+  }
+  html[data-theme="light"] header.appbar{background:rgba(255,214,10,.88);border-bottom:1px solid #E6C800}
+  html[data-theme="light"] .brand .logo{
+    background:radial-gradient(circle at 30% 30%,#333,#000 70%);
+    color:#FFD60A;box-shadow:0 2px 8px rgba(0,0,0,.25);
+  }
+  html[data-theme="light"] .icon-btn:hover{background:rgba(0,0,0,.06)}
+  html[data-theme="light"] .badge{background:#1A1A1A;color:#FFD60A;border-color:var(--bg)}
+  html[data-theme="light"] nav.tabbar{background:rgba(255,214,10,.88);border-top:1px solid #E6C800}
+  html[data-theme="light"] .tab:active{background:rgba(0,0,0,.06)}
+  html[data-theme="light"] .card{border:1px solid #E6C800}
+  html[data-theme="light"] .stat{border:1px solid #E6C800}
+  /* hero → inverted: black card, yellow text */
+  html[data-theme="light"] .hero{
+    background:linear-gradient(150deg,#2A2A2A 0%,#000000 100%);
+    color:#FFD60A;box-shadow:0 10px 30px rgba(0,0,0,.25);
+  }
+  html[data-theme="light"] .hero::after{background:radial-gradient(circle,rgba(255,214,10,.30),transparent 65%)}
+  html[data-theme="light"] .hero .eyebrow{color:rgba(255,214,10,.7)}
+  html[data-theme="light"] .hero .euro{background:#FFD60A;color:#0D0D0D}
+  html[data-theme="light"] .goal-label{color:rgba(255,214,10,.85)}
+  html[data-theme="light"] .goal-bar{background:rgba(255,214,10,.22)}
+  html[data-theme="light"] .goal-bar > span{background:linear-gradient(90deg,#FFD60A,#FFE94D)}
+  /* chart: black bars, yellow today */
+  html[data-theme="light"] .chart .bar{background:linear-gradient(180deg,#333,#000)}
+  html[data-theme="light"] .chart .bar.today{background:linear-gradient(180deg,#FFD60A,#E6B800)}
+  /* primary button → black bg, white text */
+  html[data-theme="light"] .btn{background:var(--primary);color:#fff}
+  html[data-theme="light"] .btn.gold{background:linear-gradient(135deg,#2A2A2A,#000);color:#FFD60A}
+  /* selected chips: solid dark fills */
+  html[data-theme="light"] .chip.sel-cut{background:#1A1A1A;color:#FFD60A;border-color:#1A1A1A}
+  html[data-theme="light"] .chip.sel-auto{background:#6B5A00;color:#fff;border-color:#6B5A00}
+  html[data-theme="light"] .chip.sel-do{background:#4A4A4A;color:#fff;border-color:#4A4A4A}
+  /* feed amounts */
+  html[data-theme="light"] .feed-amt.minus{color:#6B5E00}
+  /* tip card */
+  html[data-theme="light"] .tip-card{
+    background:linear-gradient(135deg,rgba(0,0,0,.06),rgba(0,0,0,.02));
+    border:1px solid rgba(0,0,0,.18);
+  }
+  html[data-theme="light"] .tip-card .eyebrow{color:#6B5A00}
+  html[data-theme="light"] .tip-card p{color:#1A1A1A}
+  /* wallet → stays a dark "bank card" */
+  html[data-theme="light"] .wallet{
+    background:linear-gradient(135deg,#2A2A2A 0%,#000000 100%);
+    color:#FFD60A;border:1px solid #000;box-shadow:0 8px 24px rgba(0,0,0,.2);
+  }
+  html[data-theme="light"] .wallet::after{background:radial-gradient(circle,rgba(255,214,10,.2),transparent 60%)}
+  html[data-theme="light"] .wallet .eyebrow{color:rgba(255,214,10,.7)}
+  html[data-theme="light"] .wallet .sub{color:rgba(255,255,255,.75)}
+  /* panels & modals */
+  html[data-theme="light"] .panel{box-shadow:0 0 40px rgba(0,0,0,.3)}
+  html[data-theme="light"] .modal-bg{background:rgba(0,0,0,.5)}
+  /* onboarding → yellow bg, black text, black logo */
+  html[data-theme="light"] .onboard{
+    background:linear-gradient(160deg,#FFE94D 0%,#FFD60A 100%);color:#1A1A1A;
+  }
+  html[data-theme="light"] .onboard .logo-big{
+    background:radial-gradient(circle at 30% 30%,#333,#000);
+    color:#FFD60A;box-shadow:0 8px 30px rgba(0,0,0,.25);
+  }
+  html[data-theme="light"] .onboard .tagline{color:rgba(26,26,26,.75)}
+  html[data-theme="light"] .onboard .pill{background:rgba(0,0,0,.06)}
+  html[data-theme="light"] .onboard .pill span{color:rgba(26,26,26,.6)}
+  html[data-theme="light"] .onboard .setup{background:rgba(0,0,0,.06)}
+  html[data-theme="light"] .onboard .setup label{color:rgba(26,26,26,.75)}
+  html[data-theme="light"] .onboard .setup input{background:#fff;color:#1A1A1A}
+  html[data-theme="light"] .onboard .btn{background:#1A1A1A;color:#FFD60A}
+  /* toast stays dark for contrast */
+  html[data-theme="light"] .toast{background:#1A1A1A;color:#fff;border-color:rgba(255,214,10,.4)}
+  html[data-theme="light"] .toast.gold{background:#FFD60A;color:#1A1A1A;border-color:transparent}
+  html[data-theme="light"] .toast.err{background:#3A1A1A;color:#FFB3B3;border-color:#A33B2E}
+
+  /* ===== Auth overlay ===== */
+  .auth{
+    position:fixed;inset:0;z-index:90;display:none;flex-direction:column;justify-content:center;
+    background:linear-gradient(160deg,#1A1A1A 0%,#000000 100%);color:#fff;
+    padding:32px 28px;max-width:480px;margin:0 auto;
+  }
+  .auth .logo-big{
+    width:64px;height:64px;border-radius:18px;
+    background:radial-gradient(circle at 30% 30%,#FFE94D,#E6B800);
+    display:grid;place-items:center;font-size:30px;font-weight:800;color:#0D0D0D;
+    margin-bottom:22px;box-shadow:0 8px 30px rgba(255,214,10,.3);
+  }
+  .auth h1{font-size:28px;font-weight:800;letter-spacing:-.8px;margin:0 0 8px;line-height:1.1}
+  .auth .sub{font-size:14px;color:rgba(255,255,255,.7);margin:0 0 22px;line-height:1.5}
+  .auth .field{margin-bottom:12px}
+  .auth .field label{display:block;font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:5px}
+  .auth .field input{
+    width:100%;border:1.5px solid #2E2E2E;border-radius:11px;padding:12px;font-size:16px;
+    background:#1C1C1C;color:#fff;font-family:inherit;
+  }
+  .auth .field input::placeholder{color:#6A6A6A}
+  .auth .field input:focus{outline:none;border-color:#FFD60A}
+  .auth-err{display:none;font-size:13px;color:#FFB3B3;background:rgba(163,59,46,.22);border:1px solid rgba(163,59,46,.5);padding:9px 11px;border-radius:9px;margin-bottom:12px;line-height:1.4}
+  .auth-row{display:flex;gap:10px;margin-top:4px}
+  .auth-row .btn{flex:1}
+  .auth .btn{background:#FFD60A;color:#0D0D0D}
+  .auth .switch{margin-top:18px;font-size:13px;color:rgba(255,255,255,.7);text-align:center}
+  .auth .switch b{color:#FFD60A;cursor:pointer;font-weight:700}
+  .auth .note{margin-top:18px;font-size:11px;color:rgba(255,255,255,.5);line-height:1.5;text-align:center}
+  html[data-theme="light"] .auth{background:linear-gradient(160deg,#FFE94D 0%,#FFD60A 100%);color:#1A1A1A}
+  html[data-theme="light"] .auth .logo-big{background:radial-gradient(circle at 30% 30%,#333,#000);color:#FFD60A}
+  html[data-theme="light"] .auth .sub{color:rgba(26,26,26,.72)}
+  html[data-theme="light"] .auth .field label{color:rgba(26,26,26,.78)}
+  html[data-theme="light"] .auth .field input{background:#fff;color:#1A1A1A;border-color:#E6C800}
+  html[data-theme="light"] .auth .field input::placeholder{color:#8A7A00}
+  html[data-theme="light"] .auth .btn{background:#1A1A1A;color:#FFD60A}
+  html[data-theme="light"] .auth .switch{color:rgba(26,26,26,.7)}
+  html[data-theme="light"] .auth .switch b{color:#1A1A1A;text-decoration:underline}
+  html[data-theme="light"] .auth .note{color:rgba(26,26,26,.55)}
+</style>
+<script>(function(){
+  var t = localStorage.getItem('tw_theme_v2') || 'light';
+  document.documentElement.setAttribute('data-theme', t);
+  var m = document.getElementById('meta-theme');
+  if(m) m.setAttribute('content', t==='dark' ? '#0D0D0D' : '#FFD60A');
+})();</script>
+</head>
+<body>
+<div class="phone">
+
+  <!-- ============ ONBOARDING ============ -->
+  <div class="onboard" id="onboard">
+    <div class="logo-big">T</div>
+    <h1>TempoWallet</h1>
+    <p class="tagline">Taglia il superfluo dalle tue giornate. Ritagliati il tempo. Trasformalo in valore concreto.</p>
+    <div class="pill-row">
+      <div class="pill"><span class="e">✂️</span><div><b>Audita il superfluo</b><span>Decidi cosa tagliare, automatizzare o fare più rapido.</span></div></div>
+      <div class="pill"><span class="e">⏳</span><div><b>Apri il conto del tempo</b><span>Ogni minuto evitato diventa un deposito sul tuo conto.</span></div></div>
+      <div class="pill"><span class="e">🎁</span><div><b>Riscatta il tempo guadagnato</b><span>Convertilo in crediti e premi nei circuiti partner.</span></div></div>
+    </div>
+    <div class="setup">
+      <label for="onb-name">Come ti chiami?</label>
+      <input id="onb-name" type="text" placeholder="Il tuo nome" autocomplete="given-name" maxlength="30">
+      <label for="onb-rate" style="margin-top:12px">Quanto vale un'ora del tuo tempo? (€/h)</label>
+      <input id="onb-rate" type="number" min="5" max="200" value="18" inputmode="numeric">
+    </div>
+    <button class="btn" id="onb-start">Apri il mio conto →</button>
+  </div>
+
+  <!-- ============ AUTH ============ -->
+  <div class="auth" id="auth">
+    <div class="logo-big">T</div>
+    <h1>TempoWallet</h1>
+    <p class="sub">Accedi al tuo conto del tempo. Il profilo è privato e sincronizzato sul tuo account.</p>
+    <div class="auth-err" id="auth-err"></div>
+    <div class="field">
+      <label for="auth-email">Email</label>
+      <input id="auth-email" type="email" placeholder="tu@esempio.it" autocomplete="email">
+    </div>
+    <div class="field">
+      <label for="auth-pass">Password</label>
+      <input id="auth-pass" type="password" placeholder="almeno 6 caratteri" autocomplete="current-password">
+    </div>
+    <div class="auth-row">
+      <button class="btn" id="auth-submit">Accedi</button>
+    </div>
+    <p class="switch"><span id="auth-switch-text">Non hai un account?</span> <b id="auth-toggle">Registrati</b></p>
+    <p class="note">I dati sono protetti da Row Level Security: ogni utente vede solo i propri.</p>
+  </div>
+
+  <!-- ============ HEADER ============ -->
+  <header class="appbar">
+    <div class="brand">
+      <div class="logo">T</div>
+      <div>
+        <h1>TempoWallet</h1>
+        <small id="brand-sub">conto del tempo</small>
+      </div>
+    </div>
+    <div class="head-actions">
+      <button class="icon-btn" id="btn-theme" aria-label="Cambia tema">
+        <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-notif" aria-label="Notifiche">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="badge" id="notif-badge">0</span>
+      </button>
+      <button class="icon-btn" id="btn-settings" aria-label="Impostazioni">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============ MAIN ============ -->
+  <main>
+
+    <!-- ===== DASHBOARD ===== -->
+    <section class="screen active" data-screen="dashboard">
+      <p class="eyebrow" id="greet">Ciao, Francesco</p>
+      <h2 class="screen-title">Il tuo conto del tempo</h2>
+
+      <div class="hero">
+        <p class="eyebrow">Questo mese hai protetto</p>
+        <div class="big" id="hero-time">— <span class="unit">—</span></div>
+        <div class="euro" id="hero-euro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M16 9.5c0-1.4-1.8-2.5-4-2.5s-4 1.1-4 2.5 1.8 2.5 4 2.5 4 1.1 4 2.5-1.8 2.5-4 2.5"/></svg>
+          <span id="hero-euro-val">€ —</span> sul conto
+        </div>
+        <div class="goal-row">
+          <div class="goal-label"><span>Obiettivo mensile</span><span id="goal-text">— / — h</span></div>
+          <div class="goal-bar"><span id="goal-fill" style="width:0%"></span></div>
+        </div>
+      </div>
+
+      <div class="stats3">
+        <div class="stat"><div class="v" id="st-today">—</div><div class="l">Oggi</div></div>
+        <div class="stat"><div class="v" id="st-week">—</div><div class="l">Settimana</div></div>
+        <div class="stat"><div class="v" id="st-year">—</div><div class="l">Anno</div></div>
+      </div>
+
+      <div class="card">
+        <div class="section-h" style="margin-top:0">Tempo protetto · ultimi 7 giorni</div>
+        <div class="chart" id="chart"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-h" style="margin-top:0">Movimenti recenti
+          <button class="link" onclick="navigate('audit')">Aggiungi →</button>
+        </div>
+        <div id="feed"></div>
+      </div>
+    </section>
+
+    <!-- ===== AUDIT / CERNACCIO ===== -->
+    <section class="screen" data-screen="audit">
+      <p class="eyebrow">Il Cernaccio</p>
+      <h2 class="screen-title">Cosa tieni, cosa tagli</h2>
+
+      <div class="card">
+        <p style="margin:0 0 12px;font-size:13px;color:var(--muted)">Inserisci un'attività ricorrente. Poi decidi: la <b style="color:var(--cut)">tagli</b>, la <b style="color:var(--auto)">automatizzi</b>, o la <b style="color:var(--do)">fai</b> — magari più rapido.</p>
+        <div class="field">
+          <label>Attività</label>
+          <input id="f-name" placeholder="Es. Scrollare Instagram prima di dormire">
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Minuti a sessione</label>
+            <input id="f-min" type="number" min="1" max="600" placeholder="45" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label>Frequenza</label>
+            <select id="f-freq">
+              <option value="day">al giorno</option>
+              <option value="week">alla settimana</option>
+              <option value="month">al mese</option>
+            </select>
+          </div>
+        </div>
+        <label style="font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px">Decisione</label>
+        <div class="decide" id="decide">
+          <button class="chip" data-d="taglio">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+            <span class="ttl">Taglio</span><span class="sub">100% salvato</span>
+          </button>
+          <button class="chip" data-d="automatizzo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span class="ttl">Automatizzo</span><span class="sub">~75% salvato</span>
+          </button>
+          <button class="chip" data-d="faccio">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="ttl">Faccio</span><span class="sub">+ scorciatoia</span>
+          </button>
+        </div>
+        <div class="field" id="shortcut-wrap" style="display:none;margin-top:12px">
+          <label>Trova una scorciatoia — in quanti minuti potresti farla?</label>
+          <input id="f-shortcut" type="number" min="0" max="600" placeholder="Es. 15" inputmode="numeric">
+        </div>
+        <button class="btn" id="add-act" style="margin-top:14px">+ Aggiungi al Cernaccio</button>
+      </div>
+
+      <div class="section-h">Le tue attività <span id="proj-weekly" style="font-size:12px;color:var(--muted);font-weight:600"></span></div>
+      <div id="act-list"></div>
+    </section>
+
+    <!-- ===== COACH ===== -->
+    <section class="screen" data-screen="coach">
+      <p class="eyebrow">Coach Taglia-Tempo</p>
+      <h2 class="screen-title">Consigli & notifiche</h2>
+
+      <div class="tip-card">
+        <p class="eyebrow">Consiglio del giorno</p>
+        <h3 id="tip-title">La regola dei 2 minuti</h3>
+        <p id="tip-text">Se una cosa si fa in meno di 2 minuti, falla subito e chiudila. Se dura di più, chiediti prima: serve davvero, la posso delegare, la posso automatizzare?</p>
+      </div>
+
+      <div class="card">
+        <div class="section-h" style="margin-top:0">Scorciatoie — fare le cose più rapido</div>
+        <div id="shortcuts"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-h" style="margin-top:0">Notifiche proattive</div>
+        <div id="notifs"></div>
+      </div>
+    </section>
+
+    <!-- ===== MARKETPLACE ===== -->
+    <section class="screen" data-screen="marketplace">
+      <p class="eyebrow">Il Mercato del Tempo</p>
+      <h2 class="screen-title">Riscatta il tempo guadagnato</h2>
+
+      <div class="wallet">
+        <p class="eyebrow">Il tuo credito</p>
+        <div class="amt" id="wallet-amt">€ —</div>
+        <div class="sub" id="wallet-sub">— ore di tempo restituito, pronte da spendere</div>
+      </div>
+
+      <div class="section-h">Premi dei partner slow-living</div>
+      <div class="rewards" id="rewards"></div>
+
+      <div class="section-h">Storico riscatti</div>
+      <div class="card" id="redeemed-card"><div id="redeemed"></div></div>
+    </section>
+  </main>
+
+  <!-- ============ BOTTOM NAV ============ -->
+  <nav class="tabbar">
+    <button class="tab active" data-screen="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+      Conto
+    </button>
+    <button class="tab" data-screen="audit">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Cernaccio
+    </button>
+    <button class="tab" data-screen="coach">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.5.4.8 1 .9 1.6L9 18h6l.1-1.7c.1-.6.4-1.2.9-1.6A7 7 0 0 0 12 2z"/></svg>
+      Coach
+    </button>
+    <button class="tab" data-screen="marketplace">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+      Mercato
+    </button>
+  </nav>
+
+  <!-- ============ NOTIFICATION PANEL ============ -->
+  <div class="panel" id="panel">
+    <div class="panel-head">
+      <h3>Notifiche</h3>
+      <button class="icon-btn" id="close-panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="panel-body" id="panel-body"></div>
+  </div>
+
+  <!-- ============ SETTINGS MODAL ============ -->
+  <div class="modal-bg" id="set-modal">
+    <div class="modal">
+      <button class="close-x" id="close-set">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <h3>Impostazioni</h3>
+      <div class="field">
+        <label>Il tuo nome</label>
+        <input id="set-name" type="text">
+      </div>
+      <div class="field">
+        <label>Valore di un'ora del tuo tempo (€/h)</label>
+        <input id="set-rate" type="number" min="5" max="200" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>Obiettivo mensile di ore da proteggere</label>
+        <input id="set-goal" type="number" min="1" max="500" inputmode="numeric">
+      </div>
+      <p id="set-account" style="font-size:12px;color:var(--primary);font-weight:600;margin-top:14px;line-height:1.5"></p>
+      <button class="btn ghost" id="reset-data" style="margin-top:8px;color:var(--cut);border-color:var(--cut-soft)">Azzera tutti i dati</button>
+      <button class="btn ghost" id="logout-btn" style="margin-top:8px;display:none">Esci dall'account</button>
+      <p style="font-size:11px;color:var(--muted);margin-top:14px;line-height:1.5">TempoWallet — profilo privato e sincronizzato sul tuo account. Il credito è virtuale e simulato.</p>
+    </div>
+  </div>
+
+  <!-- ============ TOAST ============ -->
+  <div class="toast" id="toast"></div>
+
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase-js.min.js"></script>
+<script>
+/* ---- Supabase client (auth + cloud profile) ---- */
+let sb = null, sessionUser = null;
+function supabaseReady(){ return !!(window.supabase && typeof window.supabase.createClient==='function' && window.SUPABASE_URL && window.SUPABASE_ANON_KEY); }
+function initSupabase(){
+  if(!supabaseReady()) return false;
+  try{ sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY, { auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true } }); return true; }
+  catch(e){ console.warn('Supabase init failed', e); sb=null; return false; }
+}
+
+/* ============================================================
+   AURA — logica applicativa
+   ============================================================ */
+
+const STORE_KEY = 'tempowallet_v1';
+const DAY = 86400000;
+
+/* ---- default seed ---- */
+function seed(){
+  const now = Date.now();
+  return {
+    user:{ name:'Francesco', hourlyRate:18, monthlyGoalHours:20 },
+    onboarded:false,
+    activities:[
+      { id:'a1', name:'Scrollare Instagram prima di dormire', minutes:45, frequency:'day', decision:'taglio', shortcut:null, created:now-20*DAY },
+      { id:'a2', name:'Riunione di aggiornamento settimanale', minutes:60, frequency:'week', decision:'taglio', shortcut:null, created:now-18*DAY },
+      { id:'a3', name:'Pagamento manuale delle bollette', minutes:30, frequency:'month', decision:'automatizzo', shortcut:null, created:now-15*DAY },
+      { id:'a4', name:'Caffè al bar chiacchierando 20 min', minutes:20, frequency:'day', decision:'faccio', shortcut:5, created:now-12*DAY },
+      { id:'a5', name:'Controllo email ogni 10 minuti', minutes:90, frequency:'day', decision:'taglio', shortcut:null, created:now-9*DAY },
+      { id:'a6', name:'Spesa al supermercato il sabato', minutes:90, frequency:'week', decision:'faccio', shortcut:30, created:now-6*DAY }
+    ],
+    events:[
+      { id:'e1', actId:'a1', name:'Scroll Instagram serale evitato', minutesSaved:45, ts:now-0.2*DAY, kind:'cut' },
+      { id:'e2', actId:'a2', name:'Riunione saltata — aggiornamento scritto', minutesSaved:60, ts:now-1*DAY, kind:'cut' },
+      { id:'e3', actId:'a3', name:'Bollette in domiciliazione', minutesSaved:22, ts:now-1.5*DAY, kind:'auto' },
+      { id:'e4', actId:'a4', name:'Caffè da asporto invece che al tavolo', minutesSaved:15, ts:now-0.4*DAY, kind:'do' },
+      { id:'e5', actId:'a5', name:'Notifiche email disattivate — batch 2 volte/giorno', minutesSaved:90, ts:now-2*DAY, kind:'cut' },
+      { id:'e6', actId:'a6', name:'Spesa ordinata online, ritiro drive-in', minutesSaved:60, ts:now-3*DAY, kind:'do' },
+      { id:'e7', actId:'a1', name:'Scroll Instagram serale evitato', minutesSaved:45, ts:now-1.2*DAY, kind:'cut' },
+      { id:'e8', actId:'a2', name:'Riunione abbreviata a 20 min', minutesSaved:40, ts:now-4*DAY, kind:'cut' },
+      { id:'e9', actId:'a5', name:'Bloccato il refresh automatico', minutesSaved:90, ts:now-5*DAY, kind:'cut' },
+      { id:'e10', actId:'a1', name:'Scroll Instagram serale evitato', minutesSaved:45, ts:now-2.3*DAY, kind:'cut' },
+      { id:'e11', actId:'a1', name:'Scroll Instagram serale evitato', minutesSaved:45, ts:now-3.4*DAY, kind:'cut' },
+      { id:'e12', actId:'a4', name:'Caffè da asporto', minutesSaved:15, ts:now-4.5*DAY, kind:'do' },
+      { id:'e13', actId:'a5', name:'Batch email mattutino', minutesSaved:90, ts:now-6.2*DAY, kind:'cut' }
+    ],
+    redeemed:[],
+    notifications:[
+      { id:'n1', ts:now-0.1*DAY, ico:'gold', title:'Record settimanale!', msg:'Hai protetto 8h 12min questa settimana. È il tuo miglior risultato.' },
+      { id:'n2', ts:now-0.3*DAY, ico:'cut', title:'Tra 30 min: riunione standup', msg:'Suggerimento: manda l\'aggiornamento scritto su Slack e salta la call. +30 min sul conto.' },
+      { id:'n3', ts:now-1*DAY, ico:'default', title:'Resoconto di ieri', msg:'Ieri hai protetto 1h 20min. Sei sopra la media del mese.' },
+      { id:'n4', ts:now-1.5*DAY, ico:'gold', title:'Premio sbloccato', msg:'Hai raggiunto 8 ore di credito: puoi riscattare un massaggio relax.' }
+    ],
+    seen:0
+  };
+}
+
+let state = load();
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){ const s = JSON.parse(raw); return s; }
+  }catch(e){}
+  return seed();
+}
+function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} syncCloud(); }
+
+let _syncTimer = null;
+function syncCloud(){
+  if(!sb || !sessionUser) return;
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(async ()=>{
+    try{
+      await sb.from('tempowallet_profiles').upsert({
+        user_id: sessionUser.id,
+        data: state,
+        updated_at: new Date().toISOString()
+      });
+    }catch(e){ console.warn('cloud sync failed', e); }
+  }, 800);
+}
+async function loadCloudProfile(){
+  if(!sb || !sessionUser) return null;
+  try{
+    const { data, error } = await sb.from('tempowallet_profiles').select('data').eq('user_id', sessionUser.id).maybeSingle();
+    if(error){ console.warn('load profile error', error); return null; }
+    return data && data.data ? data.data : null;
+  }catch(e){ return null; }
+}
+
+/* ---- helpers ---- */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const uid = () => Math.random().toString(36).slice(2,9);
+
+function perOccurrenceSaved(a){
+  if(a.decision==='taglio') return a.minutes;
+  if(a.decision==='automatizzo') return Math.round(a.minutes*0.75);
+  if(a.decision==='faccio') return a.shortcut!=null ? Math.max(0, a.minutes - a.shortcut) : 0;
+  return 0;
+}
+function freqPerWeek(a){
+  if(a.frequency==='day') return 7;
+  if(a.frequency==='week') return 1;
+  if(a.frequency==='month') return 0.23;
+  return 0;
+}
+function weeklyMinutes(a){ return Math.round(perOccurrenceSaved(a)*freqPerWeek(a)); }
+
+function euros(min){ return min * state.user.hourlyRate / 60; }
+function fmtMin(min){
+  min = Math.round(min);
+  const h = Math.floor(min/60), m = min%60;
+  if(h===0) return m+'min';
+  if(m===0) return h+'h';
+  return h+'h '+m+'min';
+}
+function fmtEur(v){ return '€'+Math.round(v).toLocaleString('it-IT'); }
+
+function minutesIn(range){
+  const now = Date.now();
+  let start;
+  if(range==='today'){ const d=new Date(); d.setHours(0,0,0,0); start=d.getTime(); }
+  else if(range==='week') start = now - 7*DAY;
+  else if(range==='month'){ const d=new Date(); d.setDate(1); d.setHours(0,0,0,0); start=d.getTime(); }
+  else if(range==='year'){ const d=new Date(); d.setMonth(0,1); d.setHours(0,0,0,0); start=d.getTime(); }
+  return state.events.filter(e=>e.ts>=start).reduce((s,e)=>s+e.minutesSaved,0);
+}
+function totalMinutes(){ return state.events.reduce((s,e)=>s+e.minutesSaved,0); }
+
+/* ---- navigation ---- */
+function navigate(screen){
+  $$('.screen').forEach(s=>s.classList.toggle('active', s.dataset.screen===screen));
+  $$('.tab').forEach(t=>t.classList.toggle('active', t.dataset.screen===screen));
+  render(screen);
+  $('main').scrollTop = 0;
+}
+$$('.tab').forEach(t=>t.addEventListener('click', ()=>navigate(t.dataset.screen)));
+
+/* ---- toast ---- */
+let toastTimer;
+function toast(msg, kind){
+  const el = $('#toast');
+  el.textContent = msg;
+  el.className = 'toast show '+(kind||'');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 2400);
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function renderAll(){ ['dashboard','audit','coach','marketplace'].forEach(render); renderBadge(); }
+
+function render(screen){
+  if(screen==='dashboard') renderDashboard();
+  else if(screen==='audit') renderAudit();
+  else if(screen==='coach') renderCoach();
+  else if(screen==='marketplace') renderMarketplace();
+}
+
+/* ----- DASHBOARD ----- */
+function renderDashboard(){
+  const name = state.user.name || 'Francesco';
+  const hour = new Date().getHours();
+  const greet = hour<12?'Buongiorno':(hour<18?'Buon pomeriggio':'Buonasera');
+  $('#greet').textContent = greet+', '+name;
+
+  const mMin = minutesIn('month');
+  $('#hero-time').innerHTML = fmtMin(mMin).replace(/(\d+)h/,'$1<span class="unit">h</span>').replace(/(\d+)min/,'$1<span class="unit">min</span>');
+  $('#hero-euro-val').textContent = fmtEur(euros(mMin))+' sul conto';
+
+  const goal = state.user.monthlyGoalHours*60;
+  const pct = Math.min(100, Math.round(mMin/goal*100));
+  $('#goal-fill').style.width = pct+'%';
+  $('#goal-text').textContent = (mMin/60).toFixed(1)+' / '+state.user.monthlyGoalHours+' h';
+
+  $('#st-today').textContent = fmtMin(minutesIn('today'));
+  $('#st-week').textContent = fmtMin(minutesIn('week'));
+  $('#st-year').textContent = fmtMin(minutesIn('year'));
+
+  // chart 7 days
+  const chart = $('#chart'); chart.innerHTML='';
+  const today = new Date(); today.setHours(0,0,0,0);
+  let max = 60;
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const start = today.getTime()-i*DAY;
+    const end = start+DAY;
+    const mins = state.events.filter(e=>e.ts>=start && e.ts<end).reduce((s,e)=>s+e.minutesSaved,0);
+    days.push({mins, isToday:i===0});
+    if(mins>max) max=mins;
+  }
+  const labels=['L','M','M','G','V','S','D'];
+  const dow = new Date().getDay(); // 0=dom
+  days.forEach((d,i)=>{
+    const idx = (dow-6+i*1+7)%7;
+    const col=document.createElement('div'); col.className='bar-col';
+    const bar=document.createElement('div'); bar.className='bar'+(d.isToday?' today':'');
+    bar.style.height = (d.mins/max*100)+'%';
+    bar.title = fmtMin(d.mins);
+    const lab=document.createElement('div'); lab.className='bar-label';
+    const dayNames=['L','M','M','G','V','S','D'];
+    const d2 = new Date(today.getTime()-(6-i)*DAY);
+    lab.textContent = dayNames[(d2.getDay()+6)%7];
+    col.appendChild(bar); col.appendChild(lab);
+    chart.appendChild(col);
+  });
+
+  // feed
+  const feed=$('#feed');
+  const recent=[...state.events].sort((a,b)=>b.ts-a.ts).slice(0,6);
+  if(recent.length===0){
+    feed.innerHTML='<div class="empty"><div class="ico">⏳</div><p>Nessun movimento ancora. Aggiungi un\'attività e registra il primo tempo risparmiato.</p></div>';
+  } else {
+    feed.innerHTML = recent.map(e=>{
+      const ico = e.kind==='cut'?'✂️':(e.kind==='auto'?'⚙️':'⚡');
+      const ago = relTime(e.ts);
+      return `<div class="feed-item">
+        <div class="feed-ico ${e.kind}">${ico}</div>
+        <div class="feed-body"><div class="t">${esc(e.name)}</div><div class="s">${ago}</div></div>
+        <div class="feed-amt">+${fmtMin(e.minutesSaved)}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function relTime(ts){
+  const diff = Date.now()-ts;
+  const h = Math.floor(diff/3600000);
+  if(h<1){ const m=Math.floor(diff/60000); return m<1?'adesso':m+' min fa'; }
+  if(h<24) return h+' h fa';
+  const d = Math.floor(h/24);
+  if(d===1) return 'ieri';
+  if(d<7) return d+' giorni fa';
+  return new Date(ts).toLocaleDateString('it-IT',{day:'numeric',month:'short'});
+}
+function esc(s){ return String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
+
+/* ----- AUDIT ----- */
+let pendingDecision=null;
+$$('#decide .chip').forEach(c=>c.addEventListener('click',()=>{
+  $$('#decide .chip').forEach(x=>x.className='chip');
+  const d=c.dataset.d; c.className='chip sel-'+(d==='taglio'?'cut':(d==='automatizzo'?'auto':'do'));
+  pendingDecision=d;
+  $('#shortcut-wrap').style.display = (d==='faccio')?'block':'none';
+}));
+
+$('#add-act').addEventListener('click',()=>{
+  const name=$('#f-name').value.trim();
+  const min=parseInt($('#f-min').value,10);
+  const freq=$('#f-freq').value;
+  const shortcut = $('#f-shortcut').value ? parseInt($('#f-shortcut').value,10) : null;
+  if(!name){ toast('Scrivi il nome dell\'attività','err'); return; }
+  if(!min || min<1){ toast('Inserisci i minuti stimati','err'); return; }
+  if(!pendingDecision){ toast('Scegli: taglio, automatizzo o faccio','err'); return; }
+  if(pendingDecision==='faccio' && shortcut==null){ toast('Per "Faccio" indica la scorciatoia in minuti','err'); return; }
+  const a={ id:uid(), name, minutes:min, frequency:freq, decision:pendingDecision, shortcut, created:Date.now() };
+  state.activities.push(a);
+  // generate a deposit event + notification for immediate feedback
+  const saved = perOccurrenceSaved(a);
+  if(saved>0){
+    state.events.unshift({ id:uid(), actId:a.id, name:a.name+' — registrato', minutesSaved:saved, ts:Date.now(), kind: a.decision==='taglio'?'cut':(a.decision==='automatizzo'?'auto':'do') });
+    state.notifications.unshift({ id:uid(), ts:Date.now(), ico:'gold', title:'Tempo depositato', msg:`Hai aggiunto "${a.name}". +${fmtMin(saved)} sul conto (${fmtEur(euros(saved))}).` });
+  }
+  save(); renderAudit(); renderDashboard(); renderBadge();
+  // reset form
+  $('#f-name').value=''; $('#f-min').value=''; $('#f-shortcut').value='';
+  $$('#decide .chip').forEach(x=>x.className='chip'); pendingDecision=null;
+  $('#shortcut-wrap').style.display='none';
+  toast(`+${fmtMin(saved)} sul conto del tempo`,'gold');
+});
+
+function renderAudit(){
+  const list=$('#act-list');
+  if(state.activities.length===0){
+    list.innerHTML='<div class="empty"><div class="ico">📝</div><p>Nessuna attività auditata. Inserisci la prima qui sopra.</p></div>';
+  } else {
+    list.innerHTML = state.activities.map(a=>{
+      const cls = a.decision==='taglio'?'cut':(a.decision==='automatizzo'?'auto':'do');
+      const lbl = a.decision==='taglio'?'Taglio':(a.decision==='automatizzo'?'Automatizzo':'Faccio');
+      const wmin = weeklyMinutes(a);
+      const shortcutHtml = a.decision==='faccio' && a.shortcut!=null
+        ? `<div class="act-shortcut"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 13 9 20 9"/><path d="M21 9c-1.5 5-6 9-11 9a8 8 0 0 1-8-8c0-5 4-9.5 9-11"/></svg><span><b>Scorciatoia:</b> la fai in ${a.shortcut} min invece di ${a.minutes}. Risparmi ${fmtMin(a.minutes-a.shortcut)} a sessione.</span></div>`
+        : '';
+      return `<div class="act">
+        <div class="act-top">
+          <div><div class="act-name">${esc(a.name)}</div>
+          <div class="act-meta">${a.minutes} min · ${freqLabel(a.frequency)} · <span class="tag ${cls}">${lbl}</span></div></div>
+        </div>
+        ${shortcutHtml}
+        <div class="act-foot">
+          <div class="act-save">Risparmio: <b>${fmtMin(wmin)}/sett</b> · ${fmtEur(euros(wmin))}/sett</div>
+          <div class="act-actions">
+            <button class="btn small gold" data-deposit="${a.id}">+ Registra</button>
+            <button class="btn small ghost" data-del="${a.id}" aria-label="Elimina">✕</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    // bind actions
+    $$('[data-deposit]').forEach(b=>b.addEventListener('click',()=>deposit(b.dataset.deposit)));
+    $$('[data-del]').forEach(b=>b.addEventListener('click',()=>delAct(b.dataset.del)));
+  }
+  const totW = state.activities.reduce((s,a)=>s+weeklyMinutes(a),0);
+  $('#proj-weekly').textContent = '≈ '+fmtMin(totW)+' protetti/sett';
+}
+
+function freqLabel(f){ return f==='day'?'ogni giorno':(f==='week'?'ogni settimana':'ogni mese'); }
+
+function deposit(id){
+  const a = state.activities.find(x=>x.id===id); if(!a) return;
+  const saved = perOccurrenceSaved(a);
+  if(saved<=0){ toast('Questa attività non ha ancora una scorciatoia','err'); return; }
+  state.events.unshift({ id:uid(), actId:a.id, name:a.name, minutesSaved:saved, ts:Date.now(), kind: a.decision==='taglio'?'cut':(a.decision==='automatizzo'?'auto':'do') });
+  state.notifications.unshift({ id:uid(), ts:Date.now(), ico:'gold', title:'Tempo registrato', msg:`"${a.name}": +${fmtMin(saved)} sul conto (${fmtEur(euros(saved))}).` });
+  save(); renderAudit(); renderDashboard(); renderBadge();
+  toast(`+${fmtMin(saved)} · ${fmtEur(euros(saved))}`,'gold');
+}
+function delAct(id){
+  state.activities = state.activities.filter(a=>a.id!==id);
+  save(); renderAudit();
+}
+
+/* ----- COACH ----- */
+const TIPS = [
+  { t:'La regola dei 2 minuti', x:'Se una cosa si fa in meno di 2 minuti, falla subito e chiudila. Se dura di più, chiediti prima: serve davvero, la posso delegare, la posso automatizzare?' },
+  { t:'La legge di Pareto', x:'L\'80% dei risultati nasce dal 20% delle attività. Identifica quel 20% e taglia senza pietà il resto: il tempo che liberi vale più di qualsiasi to-do list infinita.' },
+  { t:'Batch instead of drip', x:'Rispondere alle email a flusso continuo spezza la concentrazione. Prova due batch da 15 minuti, mattino e sera. Recuperi fino a 90 minuti al giorno di focus.' },
+  { t:'Il principio della sostituzione', x:'Non eliminare a vuoto: sostituisci. Al posto dello scroll serale, prepara un libro sul comodino. Il cervello accetta meglio un\'abitudine nuova che un vuoto.' }
+];
+const SHORTCUTS = [
+  { i:'🛒', t:'Spesa', x:'Ordina online con lista salvata e ritiro drive-in. Da 90 min a 30 min.' },
+  { i:'☕', t:'Caffè', x:'Da asporto invece che al tavolo con chiacchiere. Da 20 min a 5 min.' },
+  { i:'📨', t:'Email', x:'Disattiva il refresh automatico, due batch al giorno. Da 90 min a 30 min.' },
+  { i:'📊', t:'Riunioni', x:'Aggiornamento scritto su Slack invece di call. Da 60 min a 15 min.' },
+  { i:'💳', t:'Bollette', x:'Domiciliazione o addebito automatico. Da 30 min a 0 min.' },
+  { i:'📺', t:'News scroll', x:'Newsletter digest settimanale invece di check continuo. Da 45 min a 10 min.' }
+];
+
+function renderCoach(){
+  const tip = TIPS[new Date().getDate() % TIPS.length];
+  $('#tip-title').textContent = tip.t;
+  $('#tip-text').textContent = tip.x;
+  $('#shortcuts').innerHTML = SHORTCUTS.map(s=>`
+    <div class="feed-item">
+      <div class="feed-ico do" style="font-size:18px">${s.i}</div>
+      <div class="feed-body"><div class="t">${s.t}</div><div class="s">${s.x}</div></div>
+    </div>`).join('');
+  const ns = [...state.notifications].sort((a,b)=>b.ts-a.ts);
+  $('#notifs').innerHTML = ns.length? ns.map(n=>`
+    <div class="notif">
+      <div class="notif-ico ${n.ico}">${notifIcon(n.ico)}</div>
+      <div class="notif-body"><div class="notif-time">${relTime(n.ts)}</div><div class="notif-title">${esc(n.title)}</div><div class="notif-msg">${esc(n.msg)}</div></div>
+    </div>`).join('') : '<div class="empty"><p>Nessuna notifica.</p></div>';
+}
+function notifIcon(k){
+  if(k==='gold') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.5 5.8 21 7 14 2 9.3 9 8.5 12 2"/></svg>';
+  if(k==='cut') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+}
+
+/* ----- MARKETPLACE ----- */
+const REWARDS = [
+  { id:'r1', emoji:'☕', name:'Caffè al bar locale', price:1.5, partner:'Caffè del quartiere' },
+  { id:'r2', emoji:'📚', name:'Audiobook mensile', price:14.99, partner:'BookCircle' },
+  { id:'r3', emoji:'💆', name:'Massaggio relax 30 min', price:35, partner:'Spa Serena' },
+  { id:'r4', emoji:'🎬', name:'Biglietto cinema', price:10, partner:'Cinema Aurora' },
+  { id:'r5', emoji:'🏋️', name:'Ingresso palestra', price:12, partner:'FitLab' },
+  { id:'r6', emoji:'🌳', name:'Escursione guidata', price:25, partner:'TrekClub' },
+  { id:'r7', emoji:'🍵', name:'Tisana premium + libro', price:18, partner:'Bottega Lenta' },
+  { id:'r8', emoji:'🧘', name:'Abbonamento mensile meditazione', price:9.99, partner:'QuietMind' },
+  { id:'r9', emoji:'🎁', name:'Box esperienze slow', price:45, partner:'SlowBox' }
+];
+
+function renderMarketplace(){
+  const totalMin = totalMinutes();
+  const spent = state.redeemed.reduce((s,r)=>s+r.cost,0);
+  const credit = euros(totalMin) - spent;
+  $('#wallet-amt').textContent = fmtEur(credit);
+  $('#wallet-sub').textContent = fmtMin(totalMin)+' di tempo restituito, pronti da spendere';
+  $('#rewards').innerHTML = REWARDS.map(r=>{
+    const can = credit>=r.price;
+    return `<div class="reward">
+      <div class="emoji">${r.emoji}</div>
+      <div class="rname">${r.name}</div>
+      <div class="rprice">${fmtEur(r.price)}</div>
+      <div class="rpartner">${r.partner}</div>
+      <button class="btn small gold" ${can?'':'disabled'} data-redeem="${r.id}">Riscatta</button>
+    </div>`;
+  }).join('');
+  $$('[data-redeem]').forEach(b=>b.addEventListener('click',()=>redeem(b.dataset.redeem)));
+
+  const red=$('#redeemed');
+  if(state.redeemed.length===0){
+    red.innerHTML='<div class="empty"><div class="ico">🎁</div><p>Nessun premio riscattato. Accumula tempo e trattalo come moneta.</p></div>';
+  } else {
+    const sorted=[...state.redeemed].sort((a,b)=>b.ts-a.ts);
+    red.innerHTML = sorted.map(r=>`
+      <div class="feed-item">
+        <div class="feed-ico do" style="font-size:18px">${r.emoji}</div>
+        <div class="feed-body"><div class="t">${esc(r.name)}</div><div class="s">${r.partner} · ${relTime(r.ts)}</div></div>
+        <div class="feed-amt minus">−${fmtEur(r.cost)}</div>
+      </div>`).join('');
+  }
+}
+
+function redeem(id){
+  const r = REWARDS.find(x=>x.id===id); if(!r) return;
+  const totalMin = totalMinutes();
+  const spent = state.redeemed.reduce((s,x)=>s+x.cost,0);
+  const credit = euros(totalMin) - spent;
+  if(credit < r.price){ toast('Credito insufficiente, accumula più tempo','err'); return; }
+  state.redeemed.push({ id:uid(), rewardId:r.id, name:r.name, emoji:r.emoji, partner:r.partner, cost:r.price, ts:Date.now() });
+  state.notifications.unshift({ id:uid(), ts:Date.now(), ico:'gold', title:'Premio riscattato', msg:`Hai usato ${fmtEur(r.price)} di tempo guadagnato per: ${r.name}. Goditelo.` });
+  save(); renderMarketplace(); renderBadge();
+  toast(`${r.emoji} ${r.name} riscattato`,'gold');
+}
+
+/* ----- NOTIFICATIONS PANEL + BADGE ----- */
+function renderBadge(){
+  const unread = state.notifications.length - state.seen;
+  const b=$('#notif-badge');
+  if(unread>0){ b.textContent=unread; b.style.display='grid'; } else { b.style.display='none'; }
+}
+function renderPanel(){
+  const body=$('#panel-body');
+  const ns=[...state.notifications].sort((a,b)=>b.ts-a.ts);
+  body.innerHTML = ns.length? ns.map(n=>`
+    <div class="notif">
+      <div class="notif-ico ${n.ico}">${notifIcon(n.ico)}</div>
+      <div class="notif-body"><div class="notif-time">${relTime(n.ts)}</div><div class="notif-title">${esc(n.title)}</div><div class="notif-msg">${esc(n.msg)}</div></div>
+    </div>`).join('') : '<div class="empty"><p>Nessuna notifica.</p></div>';
+}
+$('#btn-notif').addEventListener('click',()=>{
+  renderPanel();
+  $('#panel').classList.add('open');
+  state.seen = state.notifications.length; save(); renderBadge();
+});
+$('#close-panel').addEventListener('click',()=>$('#panel').classList.remove('open'));
+
+/* ----- THEME TOGGLE ----- */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  var m = document.getElementById('meta-theme');
+  if(m) m.setAttribute('content', t==='dark' ? '#0D0D0D' : '#FFD60A');
+  try{ localStorage.setItem('tw_theme_v2', t); }catch(e){}
+}
+$('#btn-theme').addEventListener('click',()=>{
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = cur==='dark' ? 'light' : 'dark';
+  applyTheme(next);
+  toast(next==='light' ? 'Tema chiaro' : 'Tema scuro');
+});
+
+/* ----- SETTINGS ----- */
+$('#btn-settings').addEventListener('click',()=>{
+  $('#set-name').value = state.user.name;
+  $('#set-rate').value = state.user.hourlyRate;
+  $('#set-goal').value = state.user.monthlyGoalHours;
+  $('#set-modal').classList.add('open');
+});
+$('#close-set').addEventListener('click',()=>$('#set-modal').classList.remove('open'));
+$('#set-modal').addEventListener('click',e=>{ if(e.target===$('#set-modal')) $('#set-modal').classList.remove('open'); });
+['set-name','set-rate','set-goal'].forEach(id=>{
+  $('#'+id).addEventListener('change',()=>{
+    state.user.name = $('#set-name').value.trim() || 'Francesco';
+    state.user.hourlyRate = Math.max(5, Math.min(200, parseFloat($('#set-rate').value)||18));
+    state.user.monthlyGoalHours = Math.max(1, Math.min(500, parseInt($('#set-goal').value,10)||20));
+    save(); renderAll();
+  });
+});
+$('#reset-data').addEventListener('click',()=>{
+  if(confirm('Azzerare tutti i dati di TempoWallet? Verrà ripristinato lo stato iniziale di esempio.')){
+    localStorage.removeItem(STORE_KEY);
+    state = seed(); state.onboarded = true; save();
+    renderAll();
+    toast('Dati azzerati');
+  }
+});
+$('#logout-btn').addEventListener('click',()=>{
+  if(confirm('Uscire dall\'account? I tuoi dati restano sul cloud e saranno ricaricati al prossimo accesso.')) doLogout();
+});
+
+/* ----- ONBOARDING ----- */
+function maybeShowOnboard(){
+  if(!state.onboarded){
+    $('#onboard').classList.remove('hidden');
+    $('#onb-name').value = '';
+    $('#onb-rate').value = state.user.hourlyRate;
+    setTimeout(()=>$('#onb-name').focus(), 300);
+  } else {
+    $('#onboard').classList.add('hidden');
+  }
+}
+$('#onb-start').addEventListener('click',()=>{
+  const name = $('#onb-name').value.trim();
+  if(!name){ toast('Inserisci il tuo nome per aprire il conto','err'); $('#onb-name').focus(); return; }
+  state.user.name = name;
+  state.user.hourlyRate = Math.max(5, Math.min(200, parseFloat($('#onb-rate').value)||18));
+  state.onboarded = true; save();
+  $('#onboard').classList.add('hidden');
+  renderAll();
+  toast('Benvenuto, '+name+'! Il tuo conto è aperto.','gold');
+});
+
+/* ---- simulate a proactive notification when a "faccio" activity is approaching (demo) ---- */
+function maybeProactiveNudge(){
+  // once per session, nudge about skipping a meeting
+  if(sessionStorage.getItem('aura_nudged')) return;
+  sessionStorage.setItem('aura_nudged','1');
+  setTimeout(()=>{
+    state.notifications.unshift({ id:uid(), ts:Date.now(), ico:'cut', title:'Suggerimento Taglia-Tempo', msg:'Hai una riunione fra poco. Manda un aggiornamento scritto e salta la call? Potresti guadagnare 30 minuti.' });
+    save(); renderBadge(); renderCoach();
+  }, 40000);
+}
+
+/* ---- AUTH UI & flow ---- */
+const $auth = s => document.querySelector('#auth '+s);
+function showAuth(){ const a=document.getElementById('auth'); if(a) a.style.display='flex'; }
+function hideAuth(){ const a=document.getElementById('auth'); if(a) a.style.display='none'; }
+function authError(msg){ const e=document.getElementById('auth-err'); if(e){ e.textContent=msg||''; e.style.display=msg?'block':'none'; } }
+
+let authMode = 'signin';
+function setAuthMode(m){
+  authMode = m;
+  document.getElementById('auth-submit').textContent = m==='signup' ? 'Registrati' : 'Accedi';
+  document.getElementById('auth-switch-text').textContent = m==='signup' ? 'Hai già un account?' : 'Non hai un account?';
+  document.getElementById('auth-toggle').textContent = m==='signup' ? 'Accedi' : 'Registrati';
+  document.getElementById('auth-pass').setAttribute('autocomplete', m==='signup' ? 'new-password' : 'current-password');
+  authError('');
+}
+document.getElementById('auth-toggle').addEventListener('click', ()=>{ setAuthMode(authMode==='signin' ? 'signup' : 'signin'); });
+document.getElementById('auth-submit').addEventListener('click', ()=>{ doAuth(authMode); });
+document.getElementById('auth-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') doAuth(authMode); });
+document.getElementById('auth-email').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('auth-pass').focus(); });
+
+async function doAuth(mode){
+  if(!sb){ authError('Supabase non configurato. Compila config.js (vedi README).'); return; }
+  const email = (document.getElementById('auth-email').value||'').trim();
+  const pass = document.getElementById('auth-pass').value||'';
+  if(!email || !pass){ authError('Inserisci email e password'); return; }
+  if(pass.length < 6){ authError('La password deve avere almeno 6 caratteri'); return; }
+  authError('');
+  const btn = document.getElementById('auth-submit'); const old = btn.textContent;
+  btn.textContent = 'Attendi…'; btn.disabled = true;
+  try{
+    let res;
+    if(mode==='signup') res = await sb.auth.signUp({ email, password: pass });
+    else res = await sb.auth.signInWithPassword({ email, password: pass });
+    if(res.error){ authError(res.error.message || 'Credenziali non valide'); return; }
+    if(mode==='signup' && res.data && res.data.user && !res.data.session){
+      authError('Controlla la tua email per confermare la registrazione, poi accedi.');
+      setAuthMode('signin');
+      return;
+    }
+    // a real session is handled by onAuthStateChange -> onSession
+  }catch(e){ authError((e&&e.message)||'Errore di rete. Riprova.'); }
+  finally{ btn.textContent = old; btn.disabled = false; }
+}
+
+let authInitialized = false;
+async function onSession(session){
+  const isInitial = !authInitialized; authInitialized = true;
+  if(session && session.user){
+    sessionUser = session.user;
+    hideAuth();
+    const cloud = await loadCloudProfile();
+    if(cloud && typeof cloud==='object'){ state = Object.assign(seed(), cloud); }
+    renderAll();
+    maybeShowOnboard();
+    maybeProactiveNudge();
+    updateAccountLabel();
+    if(!isInitial) toast('Profilo caricato dal tuo account');
+  } else {
+    sessionUser = null;
+    if(supabaseReady()) showAuth();
+    updateAccountLabel();
+  }
+}
+
+function updateAccountLabel(){
+  const el = document.getElementById('set-account');
+  const lo = document.getElementById('logout-btn');
+  if(sessionUser && sessionUser.email){
+    if(el){ el.textContent = 'Account: ' + sessionUser.email; el.style.display='block'; }
+    if(lo) lo.style.display = 'block';
+  } else if(supabaseReady()){
+    if(el){ el.textContent = 'Modalità cloud attiva — accedi per sincronizzare il profilo.'; el.style.display='block'; }
+    if(lo) lo.style.display = 'none';
+  } else {
+    if(el){ el.textContent = 'Modalità locale — nessun Supabase configurato (config.js). I dati restano su questo dispositivo.'; el.style.display='block'; }
+    if(lo) lo.style.display = 'none';
+  }
+}
+
+async function doLogout(){
+  if(!sb){ return; }
+  try{ await sb.auth.signOut(); }catch(e){}
+  // onAuthStateChange fires with null -> shows auth screen
+  $('#set-modal').classList.remove('open');
+}
+
+/* ---- boot ---- */
+function boot(){
+  const ready = initSupabase();
+  if(ready){
+    document.getElementById('onboard').classList.add('hidden'); // no onboarding until after auth
+    showAuth();           // show auth immediately; hidden again if a session exists
+    renderAll();
+    sb.auth.onAuthStateChange((_evt, session)=>{ onSession(session); });
+    updateAccountLabel();
+  } else {
+    // local-only mode: no auth, runs like the standalone app
+    maybeShowOnboard();
+    renderAll();
+    maybeProactiveNudge();
+    updateAccountLabel();
+  }
+}
+boot();
+
+// register service worker (PWA installability + offline shell)
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+</script>
+</body>
+</html>
